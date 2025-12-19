@@ -331,13 +331,13 @@ Team 16</textarea>
             const dayView = document.getElementById('view-day');
 
             if (tab === 'list') {
-                listBtn.className = "flex-1 py-2 text-center tab-active transition duration-300";
-                dayBtn.className = "flex-1 py-2 text-center tab-inactive transition duration-300";
+                listBtn.className = "flex-1 py-2 text-center tab-active hover:bg-gray-50 transition";
+                dayBtn.className = "flex-1 py-2 text-center tab-inactive hover:bg-gray-50 transition";
                 listView.classList.remove('hidden');
                 dayView.classList.add('hidden');
             } else {
-                listBtn.className = "flex-1 py-2 text-center tab-inactive transition duration-300";
-                dayBtn.className = "flex-1 py-2 text-center tab-active transition duration-300";
+                listBtn.className = "flex-1 py-2 text-center tab-inactive hover:bg-gray-50 transition";
+                dayBtn.className = "flex-1 py-2 text-center tab-active hover:bg-gray-50 transition";
                 listView.classList.add('hidden');
                 dayView.classList.remove('hidden');
             }
