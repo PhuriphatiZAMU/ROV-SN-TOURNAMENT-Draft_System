@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Icon Placeholder -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>">
+    <link rel="icon" href="RoV Logo.png" type="image/png">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
         
@@ -58,6 +58,15 @@
             100% { transform: translateY(0); opacity: 1; }
         }
 
+        /* Loading Screen Animation */
+        .animate-pulse-logo {
+            animation: pulseLogo 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulseLogo {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .85; transform: scale(1.05); }
+        }
+
         /* Tabs */
         .tab-active {
             border-bottom: 3px solid var(--primary);
@@ -94,6 +103,28 @@
     </style>
 </head>
 <body class="text-gray-800 relative">
+
+    <!-- Loading Screen Overlay -->
+    <div id="loadingScreen" class="fixed inset-0 bg-[#E8F7FF] z-[100] flex flex-col items-center justify-center transition-opacity duration-700 ease-out">
+        <div class="relative flex flex-col items-center">
+            <!-- 
+                ✅ นำไฟล์ Logo ของคุณ (เช่น Gemini_Generated_Image.jpg) มาวางแทนที่ src ด้านล่างนี้ 
+                หรือเปลี่ยน path ให้ถูกต้อง 
+            -->
+            <div class="w-40 h-40 md:w-56 md:h-56 bg-white rounded-full shadow-2xl flex items-center justify-center border-4 border-[#15C8FF] animate-pulse-logo mb-6 overflow-hidden p-2">
+                <img src="RoV Logo.png" class="w-full h-full object-cover rounded-full" alt="RoV Logo">
+            </div>
+            
+            <h1 class="text-3xl md:text-5xl font-bold text-[#15C8FF] tracking-widest animate-slide-up">
+                ROV SN TOURNAMENT 2026
+            </h1>
+            <div class="mt-4 flex space-x-2 animate-bounce">
+                <div class="w-3 h-3 bg-[#15C8FF] rounded-full"></div>
+                <div class="w-3 h-3 bg-[#15C8FF] rounded-full animation-delay-200"></div>
+                <div class="w-3 h-3 bg-[#15C8FF] rounded-full animation-delay-400"></div>
+            </div>
+        </div>
+    </div>
 
     <div class="container mx-auto px-4 py-8 max-w-4xl">
         <!-- Header -->
@@ -518,6 +549,19 @@ Team 16</textarea>
                 dayView.classList.remove('hidden');
             }
         }
+
+        // --- Window Load Event for Loading Screen ---
+        window.addEventListener('load', () => {
+            const loadingScreen = document.getElementById('loadingScreen');
+            // Show for at least 2 seconds (2000ms) before fading out
+            setTimeout(() => {
+                loadingScreen.classList.add('opacity-0');
+                // Remove from DOM after fade out transition (700ms)
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 700);
+            }, 2000);
+        });
     </script>
 </body>
 </html>
