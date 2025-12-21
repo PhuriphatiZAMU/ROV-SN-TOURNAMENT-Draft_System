@@ -3,21 +3,31 @@
 // ===========================
 let isServerOnline = false;
 let API_URL = 'http://localhost:3000/api';
+let HEALTH_PATH = '/health';
 
 // Initialize API configuration
 (function initializeAPI() {
     if (typeof __api_config !== 'undefined' && __api_config) {
         API_URL = __api_config.baseURL;
+        if (__api_config.endpoints && __api_config.endpoints.health) {
+            HEALTH_PATH = __api_config.endpoints.health;
+        }
     }
     // Check server status on page load
     checkServerStatus();
 })();
+
+// Also re-check after DOM is ready to ensure elements exist
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(checkServerStatus, 0);
+});
 
 // Check MongoDB Server Connection Status
 async function checkServerStatus() {
     const statusText = document.getElementById('statusText');
     const statusDot = document.getElementById('statusDot');
     const mainStatus = document.getElementById('dbConnectionStatus');
+    const notify = document.getElementById('notificationArea');
 
     if (!statusText || !statusDot || !mainStatus) return;
 
@@ -29,7 +39,8 @@ async function checkServerStatus() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 3000);
         
-        const res = await fetch(`${API_URL}/health`, { 
+        const healthUrl = `${API_URL}${HEALTH_PATH}`;
+        const res = await fetch(healthUrl, { 
             method: 'GET',
             signal: controller.signal 
         });
@@ -41,15 +52,26 @@ async function checkServerStatus() {
             statusText.textContent = "MongoDB Online";
             statusDot.className = "w-2 h-2 rounded-full bg-green-500 mr-2";
             mainStatus.innerHTML = '<span class="text-green-600"><i class="fas fa-database"></i> Connected to MongoDB Server</span>';
+
+            if (notify) {
+                notify.classList.add('hidden');
+            }
+            console.log('[health] OK', healthUrl);
         } else {
             throw new Error("Server not ready");
         }
     } catch (e) {
-        console.log("Server offline, using local storage:", e.message);
+        console.warn("[health] offline or blocked:", e?.message || e);
         isServerOnline = false;
         statusText.textContent = "Offline (Local)";
         statusDot.className = "w-2 h-2 rounded-full bg-gray-400 mr-2";
         mainStatus.innerHTML = '<span class="text-gray-600"><i class="fas fa-hdd"></i> Local Storage Mode (Server Offline)</span>';
+
+        if (notify) {
+            notify.className = "mb-6 p-4 rounded-lg border flex items-center bg-yellow-100 border-yellow-300 text-yellow-800";
+            notify.innerHTML = `<i class=\"fas fa-exclamation-triangle mr-3 text-xl\"></i> ไม่พบ MongoDB Server ที่ ${API_URL}. กรุณาเปิด server ด้วยคำสั่ง <span class=\"font-mono bg-white px-2 py-1 rounded border ml-1\">node server.js</span> หรืออาจถูกบล็อกเพราะ mixed content หากเปิดผ่าน https ให้เรียกผ่าน http/localhost หรือใช้พร็อกซีเดียวกัน`;
+            notify.classList.remove('hidden');
+        }
     }
 }
 
@@ -485,16 +507,23 @@ function switchTab(tab) {
 // Window Load Event & Event Listeners
 // ===========================
 
-window.addEventListener('load', () => {
+function hideLoadingScreen() {
     const loadingScreen = document.getElementById('loadingScreen');
-
+    if (!loadingScreen) return;
+    loadingScreen.classList.add('opacity-0');
     setTimeout(() => {
-        loadingScreen.classList.add('opacity-0');
+        loadingScreen.style.display = 'none';
+    }, 700);
+}
 
-        setTimeout(() => {
-            loadingScreen.style.display = 'none';
-        }, 700);
-    }, 2000);
+// Hide loader as soon as DOM is ready (faster than waiting for all assets)
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(hideLoadingScreen, 500);
+});
+
+// Safety: also hide on full load in case DOMContentLoaded was missed
+window.addEventListener('load', () => {
+    setTimeout(hideLoadingScreen, 0);
 });
 
 // Event listeners for buttons and tabs

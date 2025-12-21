@@ -1,22 +1,24 @@
 // server.js - Backend สำหรับเชื่อมต่อ MongoDB
 // วิธีรัน: node server.js
 
+require('dotenv').config(); // Load environment variables
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors()); // อนุญาตให้หน้าเว็บเรียกใช้ API ได้
 app.use(bodyParser.json());
 
 // --- การตั้งค่า Database ---
-// เชื่อมต่อ MongoDB Localhost
-// ชื่อ Database: rov_sn_tournament_2026 (ตามที่คุณระบุ)
-const MONGO_URI = 'mongodb://localhost:27017/rov_sn_tournament_2026';
+// ใช้ MongoDB Atlas จาก environment variable (.env file)
+// Fallback เป็น localhost ถ้าไม่มี .env
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/rov_sn_tournament_2026';
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log(`✅ MongoDB Connected to: ${MONGO_URI}`))
@@ -35,6 +37,11 @@ const ScheduleSchema = new mongoose.Schema({
 const Schedule = mongoose.model('Schedule', ScheduleSchema, 'schedules');
 
 // 3. API Routes
+
+// Root hint
+app.get('/', (req, res) => {
+    res.status(200).send('ROV SN Tournament API is running. Use /api/health for status.');
+});
 
 // Health Check
 app.get('/api/health', (req, res) => {

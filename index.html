@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Draft | ROV SN TOURNAMENT</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS (built locally) -->
+    <link rel="stylesheet" href="dist/output.css">
     <!-- Font Awesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Favicon -->
@@ -244,13 +244,28 @@ Team 16</textarea>
     <script>
         // MongoDB API endpoint configuration
         var __api_config = {
-            baseURL: 'http://localhost:3000/api',
+            baseURL: 'http://localhost:3001/api',
             endpoints: {
                 health: '/health',
                 schedules: '/schedules'
             },
             timeout: 3000
         };
+    </script>
+
+    <!-- Fallback: hide loading screen even if main script fails -->
+    <script>
+        (function() {
+            const hide = () => {
+                const el = document.getElementById('loadingScreen');
+                if (!el) return;
+                el.classList.add('opacity-0');
+                setTimeout(() => { el.style.display = 'none'; }, 700);
+            };
+            // Hide after 2s regardless
+            window.addEventListener('DOMContentLoaded', () => setTimeout(hide, 2000));
+            window.addEventListener('load', () => setTimeout(hide, 0));
+        })();
     </script>
 
     <!-- App Script -->
