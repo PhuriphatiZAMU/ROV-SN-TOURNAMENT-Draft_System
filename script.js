@@ -1,108 +1,60 @@
 // ===========================
-// Firebase Setup
+// MongoDB API Setup
 // ===========================
-let db = null;
-let auth = null;
-let currentUser = null;
-let appId = 'default-app-id';
-let firebaseEnabled = false;
+let isServerOnline = false;
+let API_URL = 'http://localhost:3000/api';
 
-// Initialize Firebase asynchronously
-(async function initializeFirebase() {
-    // Check if Firebase config exists
-    const hasFirebaseConfig = typeof __firebase_config !== 'undefined' && __firebase_config;
-
-    if (hasFirebaseConfig) {
-        // Firebase is configured - import and initialize
-        try {
-            const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
-            const { getFirestore, collection, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-            const { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
-
-            const firebaseConfig = JSON.parse(__firebase_config);
-            const app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            firebaseEnabled = true;
-
-            // Store Firebase functions globally for later use
-            window.firebaseModules = { collection, addDoc, serverTimestamp };
-
-            // Initialize Authentication
-            const initAuth = async () => {
-                const statusEl = document.getElementById('dbStatus');
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                } catch (error) {
-                    console.error("Auth Error:", error);
-                    if (statusEl) {
-                        statusEl.innerHTML = `<div class="w-2 h-2 rounded-full bg-red-500 mr-2"></div> Error`;
-                        statusEl.classList.add('text-red-500');
-                    }
-                }
-            };
-
-            onAuthStateChanged(auth, (user) => {
-                currentUser = user;
-                const statusEl = document.getElementById('dbStatus');
-                const dotEl = document.getElementById('dbStatusDot');
-                const textEl = document.getElementById('dbStatusText');
-                if (user) {
-                    // Prefer granular status elements if present
-                    if (dotEl) {
-                        dotEl.classList.remove('bg-gray-400', 'bg-red-500');
-                        dotEl.classList.add('bg-green-500');
-                    }
-                    if (textEl) {
-                        textEl.textContent = 'Connected';
-                        textEl.classList.remove('text-gray-500', 'text-red-500');
-                        textEl.classList.add('text-green-600');
-                    } else if (statusEl) {
-                        statusEl.innerHTML = `<div class="w-2 h-2 rounded-full bg-green-500 mr-2"></div> Connected`;
-                        statusEl.classList.remove('text-gray-500');
-                        statusEl.classList.add('text-green-600');
-                    }
-                } else {
-                    if (dotEl) {
-                        dotEl.classList.remove('bg-green-500');
-                        dotEl.classList.add('bg-gray-400');
-                    }
-                    if (textEl) {
-                        textEl.textContent = 'Disconnected';
-                        textEl.classList.remove('text-green-600');
-                        textEl.classList.add('text-gray-500');
-                    } else if (statusEl) {
-                        statusEl.innerHTML = `<div class="w-2 h-2 rounded-full bg-gray-400 mr-2"></div> Disconnected`;
-                        statusEl.classList.add('text-gray-500');
-                    }
-                }
-            });
-
-            await initAuth();
-        } catch (error) {
-            console.error("Firebase initialization error:", error);
-            firebaseEnabled = false;
-            const statusEl = document.getElementById('dbStatus');
-            if (statusEl) {
-                statusEl.innerHTML = `<div class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div> Offline`;
-                statusEl.classList.add('text-yellow-600');
-            }
-        }
-    } else {
-        // No Firebase config - run in standalone mode
-        console.log("Running in standalone mode (no Firebase configuration detected)");
-        const statusEl = document.getElementById('dbStatus');
-        if (statusEl) {
-            statusEl.innerHTML = `<div class="w-2 h-2 rounded-full bg-gray-400 mr-2"></div> No Database`;
-            statusEl.classList.add('text-gray-500');
-        }
+// Initialize API configuration
+(function initializeAPI() {
+    if (typeof __api_config !== 'undefined' && __api_config) {
+        API_URL = __api_config.baseURL;
     }
+    // Check server status on page load
+    checkServerStatus();
 })();
+
+// Check MongoDB Server Connection Status
+async function checkServerStatus() {
+    const statusText = document.getElementById('statusText');
+    const statusDot = document.getElementById('statusDot');
+    const mainStatus = document.getElementById('dbConnectionStatus');
+
+    if (!statusText || !statusDot || !mainStatus) return;
+
+    statusText.textContent = "Connecting...";
+    statusDot.className = "w-2 h-2 rounded-full bg-yellow-500 mr-2 animate-pulse";
+    mainStatus.innerHTML = '<span class="text-yellow-600"><i class="fas fa-spinner fa-spin"></i> Checking...</span>';
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
+        const res = await fetch(`${API_URL}/health`, { 
+            method: 'GET',
+            signal: controller.signal 
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (res.ok) {
+            isServerOnline = true;
+            statusText.textContent = "MongoDB Online";
+            statusDot.className = "w-2 h-2 rounded-full bg-green-500 mr-2";
+            mainStatus.innerHTML = '<span class="text-green-600"><i class="fas fa-database"></i> Connected to MongoDB Server</span>';
+        } else {
+            throw new Error("Server not ready");
+        }
+    } catch (e) {
+        console.log("Server offline, using local storage:", e.message);
+        isServerOnline = false;
+        statusText.textContent = "Offline (Local)";
+        statusDot.className = "w-2 h-2 rounded-full bg-gray-400 mr-2";
+        mainStatus.innerHTML = '<span class="text-gray-600"><i class="fas fa-hdd"></i> Local Storage Mode (Server Offline)</span>';
+    }
+}
+
+// Make checkServerStatus globally accessible
+window.checkServerStatus = checkServerStatus;
 
 // ===========================
 // Helper Functions
@@ -118,48 +70,25 @@ function skipAnimation() {
 }
 
 // ===========================
-// Modal Helpers
+// Notification System
 // ===========================
 
-function hideStatusModal() {
-    const modal = document.getElementById('statusModal');
-    if (!modal) return;
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
+function showNotification(type, msg) {
+    const notify = document.getElementById('notificationArea');
+    if (!notify) return;
 
-    if (modalHideTimeout) {
-        clearTimeout(modalHideTimeout);
-        modalHideTimeout = null;
-    }
-}
-
-function showStatusModal({ title, message, type = 'info', autoCloseMs = 0 }) {
-    const modal = document.getElementById('statusModal');
-    const titleEl = document.getElementById('statusModalTitle');
-    const messageEl = document.getElementById('statusModalMessage');
-    const iconEl = document.getElementById('statusModalIcon');
-
-    if (!modal || !titleEl || !messageEl || !iconEl) return;
-
-    const tone = {
-        success: { bg: 'bg-green-100', text: 'text-green-700', icon: 'fa-check-circle' },
-        error: { bg: 'bg-red-100', text: 'text-red-700', icon: 'fa-triangle-exclamation' },
-        info: { bg: 'bg-blue-100', text: 'text-blue-700', icon: 'fa-circle-info' },
-        warning: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: 'fa-circle-exclamation' }
-    }[type] || { bg: 'bg-blue-100', text: 'text-blue-700', icon: 'fa-circle-info' };
-
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    titleEl.textContent = title || '';
-    messageEl.textContent = message || '';
-
-    iconEl.className = `fas ${tone.icon} ${tone.text}`;
-    modal.querySelector('.status-badge').className = `status-badge inline-flex items-center space-x-2 px-3 py-2 rounded-full text-sm font-semibold ${tone.bg} ${tone.text}`;
-
-    if (modalHideTimeout) clearTimeout(modalHideTimeout);
-    if (autoCloseMs > 0) {
-        modalHideTimeout = setTimeout(hideStatusModal, autoCloseMs);
-    }
+    const styles = {
+        success: ['bg-green-100', 'border-green-300', 'text-green-800', 'fa-check-circle'],
+        warning: ['bg-yellow-100', 'border-yellow-300', 'text-yellow-800', 'fa-exclamation-triangle'],
+        info: ['bg-gray-100', 'border-gray-300', 'text-gray-800', 'fa-info-circle'],
+        error: ['bg-red-100', 'border-red-300', 'text-red-800', 'fa-times-circle'],
+        loading: ['bg-blue-50', 'border-blue-200', 'text-blue-800', 'fa-spinner fa-spin']
+    };
+    
+    const s = styles[type] || styles.info;
+    notify.className = `mb-6 p-4 rounded-lg border flex items-center ${s[0]} ${s[1]} ${s[2]}`;
+    notify.innerHTML = `<i class="fas ${s[3]} mr-3 text-xl"></i> <span>${msg}</span>`;
+    notify.classList.remove('hidden');
 }
 
 // ===========================
@@ -299,87 +228,58 @@ async function runScheduleReveal(schedule) {
 }
 
 // ===========================
-// Database Save Logic
+// Database Save Logic (MongoDB + LocalStorage Fallback)
 // ===========================
 
 /**
- * Save tournament data to Firestore
+ * Save tournament data to MongoDB or LocalStorage
  */
-async function saveDataToFirestore() {
-    if (!firebaseEnabled) {
-        showStatusModal({
-            title: 'ไม่สามารถบันทึกได้',
-            message: 'Firebase ยังไม่ถูกตั้งค่า กรุณาตั้งค่า Firebase configuration แล้วลองใหม่อีกครั้ง (ดู README.md)',
-            type: 'warning'
-        });
-        return;
-    }
+async function saveDataToMongoDB(data) {
+    showNotification('loading', 'กำลังบันทึกข้อมูล...');
 
-    if (!currentUser) {
-        showStatusModal({
-            title: 'กำลังเชื่อมต่อฐานข้อมูล',
-            message: 'กรุณารอสักครู่ ระบบกำลังเชื่อมต่อกับ Database',
-            type: 'info',
-            autoCloseMs: 2200
-        });
-        return;
+    if (isServerOnline) {
+        try {
+            const response = await fetch(`${API_URL}/schedules`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                showNotification('success', `✅ บันทึกข้อมูลลง MongoDB สำเร็จ! (Document ID: ${result._id || result.id || 'saved'})`);
+                return true;
+            } else {
+                throw new Error(`Server returned error: ${response.status}`);
+            }
+        } catch (e) {
+            console.error('MongoDB save error:', e);
+            // Fallback to local storage
+            saveToLocalStorage(data);
+            showNotification('warning', '⚠️ ไม่สามารถติดต่อ MongoDB Server ได้ - บันทึกลง Local Storage แทน');
+            return false;
+        }
+    } else {
+        // Server is offline, use localStorage
+        saveToLocalStorage(data);
+        showNotification('info', 'ℹ️ โหมด Offline: บันทึกลง Local Storage เรียบร้อย (MongoDB Server ไม่ได้เปิด)');
+        return false;
     }
-    if (!generatedData) return;
+}
 
-    const saveBtn = document.getElementById('saveToDbBtn');
-    const originalContent = saveBtn?.innerHTML;
-    if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก...`;
-    }
-
+/**
+ * Save to browser's localStorage as fallback
+ */
+function saveToLocalStorage(data) {
     try {
-        // Get Firebase modules from global storage
-        const { collection, addDoc, serverTimestamp } = window.firebaseModules;
-
-        // Save to top-level collection to match requested schema
-        const collectionRef = collection(db, 'tournament_schedules');
-
-        await addDoc(collectionRef, {
-            ...generatedData,
-            savedAt: serverTimestamp(),
-            userId: currentUser.uid
-        });
-
-        if (saveBtn) {
-            saveBtn.innerHTML = `<i class="fas fa-check mr-2"></i> บันทึกสำเร็จ!`;
-            saveBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
-            saveBtn.classList.add('bg-gray-400');
-        }
-        
-        showStatusModal({
-            title: 'บันทึกสำเร็จ',
-            message: 'ข้อมูลตารางการแข่งขันถูกบันทึกลงฐานข้อมูลเรียบร้อยแล้ว',
-            type: 'success',
-            autoCloseMs: 2600
-        });
-
+        const saved = JSON.parse(localStorage.getItem('rov_tournaments') || '[]');
+        const dataWithId = { ...data, _id: `local_${Date.now()}`, savedAt: new Date().toISOString() };
+        saved.push(dataWithId);
+        localStorage.setItem('rov_tournaments', JSON.stringify(saved));
+        console.log('Data saved to localStorage:', dataWithId._id);
     } catch (e) {
-        console.error("Error adding document: ", e);
-        if (saveBtn) {
-            saveBtn.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i> ลองใหม่อีกครั้ง`;
-            saveBtn.disabled = false;
-        }
-
-        // If debug status box exists, surface error there
-        const statusBox = document.getElementById('systemStatusBox');
-        const statusMessage = document.getElementById('statusMessage');
-        if (statusBox && statusMessage) {
-            statusBox.classList.remove('hidden');
-            statusBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800');
-            statusMessage.textContent = `Save Error: ${e.message}`;
-        }
-
-        showStatusModal({
-            title: 'บันทึกไม่สำเร็จ',
-            message: `เกิดข้อผิดพลาดในการบันทึก: ${e.message}`,
-            type: 'error'
-        });
+        console.error('LocalStorage save error:', e);
+        showNotification('error', '❌ เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     }
 }
 
@@ -407,6 +307,7 @@ async function generateSchedule() {
     }
 
     btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังสร้างตาราง...';
     resultsArea.classList.add('hidden');
 
     // Process teams
@@ -444,10 +345,12 @@ async function generateSchedule() {
 
     // Store Data for Saving
     generatedData = {
+        teams: teams,
         potA: potA,
         potB: potB,
         schedule: allRounds,
-        totalTeams: teams.length
+        totalTeams: teams.length,
+        createdAt: new Date().toISOString()
     };
 
     // Render background data
@@ -460,12 +363,12 @@ async function generateSchedule() {
     // Show final tables
     resultsArea.classList.remove('hidden');
     resultsArea.scrollIntoView({ behavior: 'smooth' });
+    
     btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-play-circle mr-2"></i> สร้างและบันทึก (Generate & Save)';
 
-    // Automatically save data to Firebase
-    if (firebaseEnabled) {
-        await saveDataToFirestore();
-    }
+    // Automatically save data to MongoDB (or localStorage fallback)
+    await saveDataToMongoDB(generatedData);
 }
 
 // ===========================
@@ -600,13 +503,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tab-day')?.addEventListener('click', () => switchTab('day'));
     document.getElementById('skipBtn')?.addEventListener('click', skipAnimation);
     document.getElementById('generateBtn')?.addEventListener('click', generateSchedule);
-
-    const statusModal = document.getElementById('statusModal');
-    const statusModalClose = document.getElementById('statusModalClose');
-    statusModalClose?.addEventListener('click', hideStatusModal);
-    statusModal?.addEventListener('click', (e) => {
-        if (e.target === statusModal) hideStatusModal();
-    });
 });
 
 // Make functions globally accessible for inline event handlers
