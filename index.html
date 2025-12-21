@@ -22,40 +22,43 @@
 
         /* Additional inline animations */
         @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            60% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); }
+            0% { transform: scale(0.9); opacity: 0; }
+            60% { transform: scale(1.02); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         .animate-pop-in {
-            animation: popIn 0.5s ease forwards;
+            animation: popIn 1s ease-out forwards;
         }
 
         .animation-delay-200 { animation-delay: 0.2s; }
         .animation-delay-400 { animation-delay: 0.4s; }
+
+        /* Smooth app fade-in after loading */
+        @keyframes fadeInSoft {
+            0% { opacity: 0; transform: translateY(6px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .app-hidden { opacity: 0; }
+        .app-fade-in { animation: fadeInSoft 220ms ease-out forwards; }
+
+        /* Scale logo when hiding (no blur for clarity) */
+        .scale-out { transform: scale(0.92); transition: transform 700ms ease; }
+
+        /* Make logo rendering crisper during animation */
+        .logo-clear { backface-visibility: hidden; transform: translateZ(0); image-rendering: -webkit-optimize-contrast; }
     </style>
 </head>
 <body class="text-gray-800 relative">
 
-    <!-- Loading Screen -->
-    <div id="loadingScreen" class="fixed inset-0 bg-[#E8F7FF] z-[100] flex flex-col items-center justify-center transition-opacity duration-700 ease-out">
-        <div class="relative flex flex-col items-center">
-            <div class="w-40 h-40 md:w-56 md:h-56 bg-white rounded-full shadow-2xl flex items-center justify-center border-4 border-[#15C8FF] animate-pulse-logo mb-6 overflow-hidden p-2">
-                <img src="RoV Logo.png" class="w-full h-full object-cover rounded-full" alt="RoV Logo" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
-                <i class="fas fa-trophy text-6xl md:text-8xl text-yellow-400 drop-shadow-md hidden"></i>
-            </div>
-            <h1 class="text-3xl md:text-5xl font-bold text-[#15C8FF] tracking-widest animate-slide-up">
-                ROV SN 2026
-            </h1>
-            <div class="mt-4 flex space-x-2 animate-bounce">
-                <div class="w-3 h-3 bg-[#15C8FF] rounded-full"></div>
-                <div class="w-3 h-3 bg-[#15C8FF] rounded-full animation-delay-200"></div>
-                <div class="w-3 h-3 bg-[#15C8FF] rounded-full animation-delay-400"></div>
-            </div>
+    <!-- Loading Screen (Logo only) -->
+    <div id="loadingScreen" class="fixed inset-0 bg-[#E8F7FF] z-[100] flex items-center justify-center transition-opacity duration-900 ease-in-out">
+        <div class="w-40 h-40 md:w-56 md:h-56 bg-white rounded-full shadow-2xl flex items-center justify-center border-4 border-[#15C8FF] animate-pulse-logo overflow-hidden p-2">
+            <img src="RoV Logo.png" class="w-full h-full object-cover rounded-full animate-pop-in logo-clear" alt="RoV Logo">
         </div>
     </div>
 
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div id="appMain" class="container mx-auto px-4 py-8 max-w-4xl app-hidden">
         <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">🏆 ROV SN TOURNAMENT 2026</h1>
@@ -253,18 +256,29 @@ Team 16</textarea>
         };
     </script>
 
-    <!-- Fallback: hide loading screen even if main script fails -->
+    <!-- Fallback: hide loading screen even if main script fails (3s delay) -->
     <script>
         (function() {
             const hide = () => {
                 const el = document.getElementById('loadingScreen');
                 if (!el) return;
+                const logo = el.querySelector('img');
+                if (logo) logo.classList.add('scale-out');
                 el.classList.add('opacity-0');
-                setTimeout(() => { el.style.display = 'none'; }, 700);
+                // Start app fade-in immediately for snappier feel
+                const app = document.getElementById('appMain');
+                if (app) {
+                    app.classList.remove('app-hidden');
+                    app.classList.add('app-fade-in');
+                }
+                // Match overlay transition duration
+                setTimeout(() => {
+                    el.style.display = 'none';
+                }, 900);
             };
-            // Hide after 2s regardless
-            window.addEventListener('DOMContentLoaded', () => setTimeout(hide, 2000));
-            window.addEventListener('load', () => setTimeout(hide, 0));
+            // Hide after 3s regardless
+            window.addEventListener('DOMContentLoaded', () => setTimeout(hide, 3000));
+            window.addEventListener('load', () => setTimeout(hide, 3000));
         })();
     </script>
 
