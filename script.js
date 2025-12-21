@@ -398,6 +398,11 @@ async function generateSchedule() {
     resultsArea.classList.remove('hidden');
     resultsArea.scrollIntoView({ behavior: 'smooth' });
     btn.disabled = false;
+
+    // Automatically save data to Firebase
+    if (firebaseEnabled) {
+        await saveDataToFirestore();
+    }
 }
 
 // ===========================
