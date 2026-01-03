@@ -236,17 +236,8 @@ Team 16</textarea>
         </div>
     </div>
 
-    <script>
-        var __api_config = {
-            baseURL: '/api',
-            endpoints: {
-                health: '/health',
-                schedules: '/schedules'
-            },  // <--- (จุดสำคัญ) อย่าลืมคอมม่าตรงนี้! ถ้าไม่มี หน้าเว็บจะขาวทันที
-            timeout: 15000
-        };
-    </script>
-        <script src="app.js" defer></script>
+    <!-- App Script -->
+    <script type="module" src="script.js"></script>
 
 </body>
 </html>

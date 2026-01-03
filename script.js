@@ -2,23 +2,12 @@
 // MongoDB API Setup
 // ===========================
 let isServerOnline = false;
-let API_URL = 'http://localhost:3000/api';
+let API_URL = '/api'; // Use a relative path
 let HEALTH_PATH = '/health';
 let SCHEDULE_PATH = '/schedules';
 
 // Initialize API configuration
 (function initializeAPI() {
-    // In module scripts we must read globals via globalThis
-    const cfg = (typeof globalThis !== 'undefined') ? globalThis.__api_config : undefined;
-    if (cfg && cfg.baseURL) {
-        API_URL = cfg.baseURL;
-        if (cfg.endpoints && cfg.endpoints.health) {
-            HEALTH_PATH = cfg.endpoints.health;
-        }
-        if (cfg.endpoints && cfg.endpoints.schedules) {
-            SCHEDULE_PATH = cfg.endpoints.schedules;
-        }
-    }
     // Check server status on page load
     checkServerStatus();
 })();
