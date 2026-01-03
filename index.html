@@ -236,21 +236,18 @@ Team 16</textarea>
         </div>
     </div>
 
-    <!-- MongoDB API Configuration -->
     <script>
-        // MongoDB API endpoint configuration
-        var __api_config = {
-            baseURL: '/api',  // [แก้ตรงนี้] จากเดิม 'https://...' หรือ 'http://localhost...' ให้เหลือแค่ '/api'
-            endpoints: {
-                health: '/health',
-                schedules: '/schedules'
-            },
-            timeout: 3000
-        };
-    </script>
-
-    <!-- App Script -->
-    <script type="module" src="script.js"></script>
+            // MongoDB API endpoint configuration
+            var __api_config = {
+                baseURL: '/api',
+                endpoints: {
+                    health: '/health',
+                    schedules: '/schedules'
+                },
+                timeout: 15000  // [แก้ตรงนี้] เปลี่ยนจาก 3000 เป็น 15000 (15 วินาที)
+            };
+        </script>
+        <script src="app.js" defer></script>
 
 </body>
 </html>
