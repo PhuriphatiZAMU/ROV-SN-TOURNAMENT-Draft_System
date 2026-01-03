@@ -51,7 +51,7 @@
 </head>
 <body class="text-gray-800 relative">
 
-    <div id="appMain" class="container mx-auto px-4 py-8 max-w-4xl app-hidden">
+    <div id="appMain" class="container mx-auto px-4 py-8 max-w-4xl">
         <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">🏆 ROV SN TOURNAMENT 2026</h1>
@@ -237,16 +237,15 @@ Team 16</textarea>
     </div>
 
     <script>
-            // MongoDB API endpoint configuration
-            var __api_config = {
-                baseURL: '/api',
-                endpoints: {
-                    health: '/health',
-                    schedules: '/schedules'
-                },
-                timeout: 15000  // [แก้ตรงนี้] เปลี่ยนจาก 3000 เป็น 15000 (15 วินาที)
-            };
-        </script>
+        var __api_config = {
+            baseURL: '/api',
+            endpoints: {
+                health: '/health',
+                schedules: '/schedules'
+            },  // <--- (จุดสำคัญ) อย่าลืมคอมม่าตรงนี้! ถ้าไม่มี หน้าเว็บจะขาวทันที
+            timeout: 15000
+        };
+    </script>
         <script src="app.js" defer></script>
 
 </body>
