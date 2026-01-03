@@ -47,17 +47,62 @@
 }
 
 /* Animations */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes scaleUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-@keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 60% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); } }
-@keyframes pulseLogo { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
-.animate-fade-in { animation: fadeIn 0.5s ease forwards; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+@keyframes scaleUp {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 60% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); } }
+
+/* Loading Screen Animations */
+@keyframes pulseLogo {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 8px 24px rgba(21, 200, 255, 0.18);
+    }
+    50% {
+        transform: scale(1.06);
+        box-shadow: 0 18px 48px rgba(21, 200, 255, 0.28);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+    opacity: 0;
+}
+
 .animate-slide-up { animation: slideUp 0.55s ease forwards; }
-.animate-scale-up { animation: scaleUp 0.45s ease forwards; }
+
+.animate-scale-up {
+    animation: scaleUp 0.4s ease-out forwards;
+    opacity: 0;
+}
+
 .animate-pop-in { animation: popIn 0.5s ease forwards; }
-.animate-pulse-logo { animation: pulseLogo 1.8s ease-in-out infinite; }
+
+.animate-pulse-logo {
+    animation: pulseLogo 1.8s ease-in-out infinite;
+}
+
 .animation-delay-200 { animation-delay: 0.2s; }
 .animation-delay-400 { animation-delay: 0.4s; }
 
