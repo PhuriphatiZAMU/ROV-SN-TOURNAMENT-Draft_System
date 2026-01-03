@@ -25,6 +25,15 @@ let SCHEDULE_PATH = '/schedules';
 
 // Also re-check after DOM is ready to ensure elements exist
 document.addEventListener('DOMContentLoaded', () => {
+    // --- ส่วนที่แก้ไข (FIX START) ---
+    // สั่งให้แสดงผลหน้าเว็บโดยลบคลาส app-hidden และใส่ Animation
+    const appMain = document.getElementById('appMain');
+    if (appMain) {
+        appMain.classList.remove('app-hidden');
+        appMain.classList.add('app-fade-in');
+    }
+    // --- ส่วนที่แก้ไข (FIX END) ---
+
     setTimeout(checkServerStatus, 0);
     document.getElementById('tab-list')?.addEventListener('click', () => switchTab('list'));
     document.getElementById('tab-day')?.addEventListener('click', () => switchTab('day'));
