@@ -2,7 +2,19 @@
 // MongoDB API Setup
 // ===========================
 let isServerOnline = false;
-let API_URL = '/api'; // Use a relative path
+
+// Allow GitHub Pages (static) to call a deployed backend by overriding apiBaseUrl
+const DEFAULT_API_BASE = '/api';
+const metaApiBase = document.querySelector('meta[name="api-base-url"]')?.content?.trim();
+const configApiBase = (window.APP_CONFIG && window.APP_CONFIG.apiBaseUrl)
+    ? window.APP_CONFIG.apiBaseUrl.trim()
+    : '';
+const githubPagesFallback = window.location.hostname.endsWith('github.io')
+    ? 'https://rov-sn-tournament-draft-system.onrender.com/api' // TODO: replace with your deployed API base URL
+    : '';
+
+// Ensure no trailing slash to avoid double slashes when appending paths
+let API_URL = (configApiBase || metaApiBase || githubPagesFallback || DEFAULT_API_BASE).replace(/\/$/, '');
 let HEALTH_PATH = '/health';
 let SCHEDULE_PATH = '/schedules';
 

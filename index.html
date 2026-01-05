@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Draft - ROV SN TOURNAMENT</title>
+    <!-- Optional: override API base URL for GitHub Pages/static hosting -->
+    <meta name="api-base-url" content="https://your-backend-domain.example.com/api">
     <!-- Tailwind CSS (built locally) -->
     <link rel="stylesheet" href="dist/output.css">
     <!-- Font Awesome Icons -->
@@ -237,6 +239,10 @@ Team 16</textarea>
             </div>
         </div>
     </div>
+
+    <!-- Optional environment override (copy config.example.js -> config.js and edit) -->
+    <script>window.APP_CONFIG = window.APP_CONFIG || {};</script>
+    <script src="config.js" defer></script>
 
     <!-- App Script -->
     <script type="module" src="script.js"></script>
