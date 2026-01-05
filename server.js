@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware พื้นฐาน
-app.use(cors());
+app.use(cors({ origin: ['https://phuriphatizamu.github.io'], methods: ['GET','POST'] }));
 app.use(bodyParser.json());
 
 // Database Connection
@@ -83,3 +83,6 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });
+
+window.APP_CONFIG = window.APP_CONFIG || {};
+window.APP_CONFIG.apiBaseUrl = 'https://rov-sn-tournament-draft-system-1.onrender.com/api';
