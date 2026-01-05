@@ -83,6 +83,3 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 });
-
-window.APP_CONFIG = window.APP_CONFIG || {};
-window.APP_CONFIG.apiBaseUrl = 'https://rov-sn-tournament-draft-system-1.onrender.com/api';
