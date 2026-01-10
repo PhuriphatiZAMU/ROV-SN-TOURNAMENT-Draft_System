@@ -140,7 +140,7 @@ function showNotification(type, msg) {
 /**
  * Generate internal fixtures for a group using Round-Robin algorithm
  * @param {Array} teams - Array of team names
- * @returns {Array} Array of rounds, each containing matches as objects {blue, red}
+ * @returns {Array} Array of rounds
  */
 function generateInternalFixtures(teams) {
     const n = teams.length;
@@ -148,9 +148,9 @@ function generateInternalFixtures(teams) {
     const fixedTeam = teams[0];
     let rotatingTeams = teams.slice(1);
 
+    // Round Robin Logic (เหมือนเดิม)
     for (let i = 0; i < n - 1; i++) {
         const roundMatches = [];
-        // Changed from array [A, B] to object {blue: A, red: B} for Firestore compatibility
         roundMatches.push({ blue: fixedTeam, red: rotatingTeams[0] });
 
         for (let j = 1; j < n / 2; j++) {
@@ -161,27 +161,28 @@ function generateInternalFixtures(teams) {
         rotatingTeams.push(rotatingTeams.shift());
     }
 
-    return rounds.slice(0, 4);
+    // แก้ไข: คืนค่าเพียง 3 รอบ (Meet 3 teams in same pot)
+    return rounds.slice(0, 3);
 }
 
 /**
  * Generate external fixtures between two groups
  * @param {Array} groupA - First group of teams
  * @param {Array} groupB - Second group of teams
- * @returns {Array} Array of rounds with cross-group matches as objects {blue, red}
+ * @returns {Array} Array of rounds
  */
 function generateExternalFixtures(groupA, groupB) {
     const rounds = [];
     const n = groupA.length;
 
-    for (let r = 0; r < 4; r++) {
+    // แก้ไข: วนลูปเพียง 3 รอบ (Meet 3 teams from other pot)
+    for (let r = 0; r < 3; r++) {
         const roundMatches = [];
 
         for (let i = 0; i < n; i++) {
             const teamA = groupA[i];
-            const teamBIndex = (i + r) % n;
+            const teamBIndex = (i + r) % n; // Logic เดิมใช้ได้เลยสำหรับการวนเจอทีมไม่ซ้ำ
             const teamB = groupB[teamBIndex];
-            // Changed from array [A, B] to object {blue: A, red: B} for Firestore compatibility
             roundMatches.push({ blue: teamA, red: teamB });
         }
 
@@ -190,7 +191,6 @@ function generateExternalFixtures(groupA, groupB) {
 
     return rounds;
 }
-
 /**
  * Shuffle array using Fisher-Yates algorithm
  * @param {Array} array - Array to shuffle
@@ -333,7 +333,7 @@ function saveToLocalStorage(data) {
  * Generate and display the tournament schedule
  */
 async function generateSchedule() {
-    if (isGenerating) return; // Skip if a run is already in progress
+    if (isGenerating) return; 
     isGenerating = true;
     try {
         const input = document.getElementById('teamsInput').value;
@@ -342,9 +342,9 @@ async function generateSchedule() {
         const resultsArea = document.getElementById('resultsArea');
         const btn = document.getElementById('generateBtn');
 
-        // Validation
-        if (teams.length !== 16) {
-            errorMsg.textContent = `❌ จำนวนทีมไม่ถูกต้อง: มี ${teams.length} ทีม (ต้องการ 16 ทีม)`;
+        // แก้ไข: ตรวจสอบเป็น 12 ทีม
+        if (teams.length !== 12) {
+            errorMsg.textContent = `❌ จำนวนทีมไม่ถูกต้อง: มี ${teams.length} ทีม (ต้องการ 12 ทีม)`;
             errorMsg.classList.remove('hidden');
             return;
         } else {
@@ -357,8 +357,10 @@ async function generateSchedule() {
 
         // Process teams
         const shuffledTeams = shuffle([...teams]);
-        const potA = shuffledTeams.slice(0, 8);
-        const potB = shuffledTeams.slice(8, 16);
+        
+        // แก้ไข: แบ่ง Pot ละ 6 ทีม
+        const potA = shuffledTeams.slice(0, 6);
+        const potB = shuffledTeams.slice(6, 12);
 
         // Generate rounds
         const internalA = generateInternalFixtures(potA);
@@ -367,8 +369,8 @@ async function generateSchedule() {
 
         const allRounds = [];
 
-        // Phase 1: Internal (4 Days)
-        for (let i = 0; i < 4; i++) {
+        // Phase 1: Internal (แก้ไข: 3 Days)
+        for (let i = 0; i < 3; i++) {
             let combined = [...internalA[i], ...internalB[i]];
             combined = shuffle(combined);
             allRounds.push({
@@ -378,11 +380,11 @@ async function generateSchedule() {
             });
         }
 
-        // Phase 2: External (4 Days)
-        for (let i = 0; i < 4; i++) {
+        // Phase 2: External (แก้ไข: 3 Days ต่อจาก Phase 1)
+        for (let i = 0; i < 3; i++) {
             const matches = shuffle(external[i]);
             allRounds.push({
-                day: i + 5,
+                day: i + 4, // เริ่มวันที่ 4, 5, 6
                 type: "External (Cross Pot)",
                 matches: matches
             });
